@@ -1,10 +1,15 @@
 import ListGroup from "./components/css/ListGroup";
 import { useState } from "react";
 import Like from "./components/Like";
+import NavBar from "./components/NavBar";
+import Cart from "./components/Cart";
+
 function App(){
+  const [cartItems, setCartItems] = useState(['Product1','Product2']);
   return (
     <div>
-      <Like onClick={() => console.log("Click")}></Like>
+      <NavBar cartItemsCount={cartItems.length} />
+      <Cart cartItems={cartItems} onClear={() => setCartItems([])}/>
     </div>
   );
 }
