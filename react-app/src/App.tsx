@@ -1,6 +1,11 @@
-import ListGroup from "./components/ListGroup";
+import ListGroup from "./components/css/ListGroup";
+import { useState } from "react";
+import Like from "./components/Like";
 function App(){
-  const items = ['New York', 'San Francisco', 'Tokyo', 'London', 'Paris'];
-  return <div><ListGroup items={items} heading="Cities"></ListGroup></div>
+  return (
+    <div>
+      <Like onClick={() => console.log("Click")}></Like>
+    </div>
+  );
 }
 export default App;
