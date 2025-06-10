@@ -3,13 +3,20 @@ import { useState } from "react";
 import Like from "./components/Like";
 import NavBar from "./components/NavBar";
 import Cart from "./components/Cart";
+import { set } from "immer/dist/internal";
+import ExpandableText from "./components/ExpandableText";
 
-function App(){
-  const [cartItems, setCartItems] = useState(['Product1','Product2']);
+function App() {
+  const [maxChars, setMaxChars] = useState(100);
+  const handleClick = () => {
+    setMaxChars((prevMaxChars) => (prevMaxChars === 100 ? 10 : 100));
+  };
+
   return (
     <div>
-      <NavBar cartItemsCount={cartItems.length} />
-      <Cart cartItems={cartItems} onClear={() => setCartItems([])}/>
+      <ExpandableText maxChars={maxChars} onClick={handleClick}>
+        ratione.
+      </ExpandableText>
     </div>
   );
 }
