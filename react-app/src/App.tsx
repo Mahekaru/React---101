@@ -5,7 +5,8 @@ import NavBar from "./components/NavBar";
 import Cart from "./components/Cart";
 import { set } from "immer/dist/internal";
 import ExpandableText from "./components/ExpandableText";
-
+import Form from "./components/Form";
+import './components/index.css'
 function App() {
   const [maxChars, setMaxChars] = useState(100);
   const handleClick = () => {
@@ -14,9 +15,7 @@ function App() {
 
   return (
     <div>
-      <ExpandableText maxChars={maxChars} onClick={handleClick}>
-        ratione.
-      </ExpandableText>
+      <Form/>
     </div>
   );
 }
