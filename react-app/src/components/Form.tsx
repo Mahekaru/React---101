@@ -1,17 +1,14 @@
-import React, { FormEvent, useRef } from "react";
+import React, { FormEvent, useRef, useState } from "react";
 
 const Form = () => {
-  const nameRef = useRef<HTMLInputElement>(null);
-  const ageRef = useRef<HTMLInputElement>(null);
-  const person = {name: '', age:0};
+  const [person, setPerson] = useState({
+    name: "",
+    age: 0,
+  });
 
   const handleSubtmit = (event: FormEvent) => {
     event.preventDefault();
-    if (nameRef.current !== null && ageRef.current !== null) {
-      person.name = nameRef.current.value;
-      person.age = parseInt(ageRef.current.value);
-      console.log(person);
-    }
+    console.log("Submitted:", person);
   };
 
   return (
@@ -20,13 +17,29 @@ const Form = () => {
         <label htmlFor="name" className="form-label">
           Name
         </label>
-        <input ref={nameRef} id="name" type="text" className="form-control" />
+        <input
+          onChange={(event) =>
+            setPerson({ ...person, name: event.target.value })
+          }
+          value={person.name}//This is how you can set 'source of truth' value of the input field
+          id="name"
+          type="text"
+          className="form-control"
+        />
       </div>
       <div className="mb-3">
         <label htmlFor="age" className="form-label">
           Age
         </label>
-        <input ref={ageRef} id="age" type="number" className="form-control" />
+        <input
+          onChange={(event) =>
+            setPerson({ ...person, age: parseInt(event.target.value) })
+          }
+          value={person.age} //This is how you can set 'source of truth' value of the input field
+          id="age"
+          type="number"
+          className="form-control"
+        />
       </div>
       <button className="btn btn-primary" type="submit">
         Submit
