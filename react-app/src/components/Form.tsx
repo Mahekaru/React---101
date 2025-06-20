@@ -1,41 +1,45 @@
 import React, { FormEvent, useRef, useState } from "react";
+import { FieldValues, useForm } from "react-hook-form";
+
+interface FormData {
+  name: string;
+  age: number; // Optional field
+}
 
 const Form = () => {
-  const [person, setPerson] = useState({
-    name: "",
-    age: 0,
-  });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>();
 
-  const handleSubtmit = (event: FormEvent) => {
-    event.preventDefault();
-    console.log("Submitted:", person);
-  };
+  const onSubmit = (data: FieldValues) => console.log(data);
 
   return (
-    <form onSubmit={handleSubtmit} className="container mt-5">
+    <form onSubmit={handleSubmit(onSubmit)} className="container mt-5">
       <div className="mb-3">
         <label htmlFor="name" className="form-label">
           Name
         </label>
         <input
-          onChange={(event) =>
-            setPerson({ ...person, name: event.target.value })
-          }
-          value={person.name}//This is how you can set 'source of truth' value of the input field
+          {...register("name", { required: true, minLength: 3 })} // This is how you can register the input with react-hook-form
           id="name"
           type="text"
           className="form-control"
         />
+        {errors.name?.type === "required" && (
+          <p className="text-danger">The name field is required.</p>
+        )}
+        {errors.name?.type === "minLength" && (
+          <p className="text-danger">The name must be at least 3 characters.</p>
+        )}
       </div>
       <div className="mb-3">
         <label htmlFor="age" className="form-label">
           Age
         </label>
         <input
-          onChange={(event) =>
-            setPerson({ ...person, age: parseInt(event.target.value) })
-          }
-          value={person.age} //This is how you can set 'source of truth' value of the input field
+          {...register("age", { valueAsNumber: true })} // Registering with value as number
           id="age"
           type="number"
           className="form-control"
