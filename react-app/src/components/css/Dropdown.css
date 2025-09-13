@@ -1,0 +1,13 @@
+.dropdown button {
+  text-align: end;
+  border-color: lightgray;
+}
+
+.dropdown button:hover {
+  background-color: lightgray;
+}
+
+ul li:hover{
+  background-color: lightgray;
+}
+

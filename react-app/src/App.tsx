@@ -1,22 +1,81 @@
-import ListGroup from "./components/css/ListGroup";
-import { useState } from "react";
-import Like from "./components/Like";
-import NavBar from "./components/NavBar";
-import Cart from "./components/Cart";
+import axios from "axios";
 import { set } from "immer/dist/internal";
-import ExpandableText from "./components/ExpandableText";
-import Form from "./components/Form";
-import './components/index.css'
+import { useEffect, useState } from "react";
+
+interface User {
+  id: number;
+  name: string;
+}
+
 function App() {
-  const [maxChars, setMaxChars] = useState(100);
-  const handleClick = () => {
-    setMaxChars((prevMaxChars) => (prevMaxChars === 100 ? 10 : 100));
-  };
+  const [users, setUsers] = useState<User[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setLoading] = useState(false);
+
+  // useEffect -> side effect
+  // get -> promise -> res / error
+  useEffect(() => {
+    const controller = new AbortController();
+
+    setLoading(true);
+    axios
+      .get<User[]>("https://jsonplaceholder.typicode.com/users", {
+        signal: controller.signal,
+      })
+      .then((res) => {
+        setUsers(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (axios.isCancel(err)) return;
+        setError(err.message);
+        setLoading(false);
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  const deleteUser = (user: User) => {
+    const originalUsers = [...users];
+    setUsers(users.filter(u => u.id !== user.id));
+
+    axios.delete(`https://jsonplaceholder.typicode.com/users/${user.id}`)
+    .catch(err => {
+      setError(err.message);
+      setUsers(originalUsers);
+    })
+  }
+
+  const addUser = () => {
+    const originalUsers = [...users];
+    const newUser = {id: 0, name: "New User"};
+    setUsers([newUser, ...users]);
+
+    axios.post<User>("https://jsonplaceholder.typicode.com/users", newUser)
+    .then(({data: savedUser}) => {
+      setUsers([savedUser, ...users]);
+    })
+    .catch(err => {
+      setError(err.message);
+      setUsers(originalUsers);
+    })
+  }
 
   return (
-    <div>
-      <Form/>
-    </div>
+    <>
+      {error && <p className="text-danger">{error}</p>}
+      {isLoading && <div className="spinner-border"></div>}
+      <button className="btn btn-primary mb-3" onClick={addUser}>Add</button>
+      <ul className="list-group">
+        {users.map((user) => (
+          <li className="list-group-item d-flex justify-content-between" key={user.id}>
+            {user.name}
+            <button className="btn btn-outline-danger" onClick={() => deleteUser(user)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
+
 export default App;
