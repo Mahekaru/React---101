@@ -1,11 +1,6 @@
-import axios from "axios";
-import { set } from "immer/dist/internal";
 import { useEffect, useState } from "react";
-
-interface User {
-  id: number;
-  name: string;
-}
+import { CanceledError } from "./services/api-client";
+import userService, { User } from "./services/user-service";
 
 function App() {
   const [users, setUsers] = useState<User[]>([]);
@@ -15,78 +10,89 @@ function App() {
   // useEffect -> side effect
   // get -> promise -> res / error
   useEffect(() => {
-    const controller = new AbortController();
-
     setLoading(true);
-    axios
-      .get<User[]>("https://jsonplaceholder.typicode.com/users", {
-        signal: controller.signal,
-      })
+    const { request, cancel } = userService.getAll<User>();
+    request
       .then((res) => {
         setUsers(res.data);
         setLoading(false);
       })
       .catch((err) => {
-        if (axios.isCancel(err)) return;
+        if (err instanceof CanceledError) return;
         setError(err.message);
         setLoading(false);
       });
 
-    return () => controller.abort();
+    return () => cancel();
   }, []);
 
   const deleteUser = (user: User) => {
     const originalUsers = [...users];
-    setUsers(users.filter(u => u.id !== user.id));
+    setUsers(users.filter((u) => u.id !== user.id));
 
-    axios.delete(`https://jsonplaceholder.typicode.com/users/${user.id}`)
-    .catch(err => {
+    userService.delete(user.id).catch((err) => {
       setError(err.message);
       setUsers(originalUsers);
-    })
-  }
+    });
+  };
 
   const addUser = () => {
     const originalUsers = [...users];
-    const newUser = {id: 0, name: "New User"};
+    const newUser = { id: 0, name: "New User" };
     setUsers([newUser, ...users]);
 
-    axios.post<User>("https://jsonplaceholder.typicode.com/users", newUser)
-    .then(({data: savedUser}) => {
-      setUsers([savedUser, ...users]);
-    })
-    .catch(err => {
-      setError(err.message);
-      setUsers(originalUsers);
-    })
-  }
+    userService
+      .create(newUser)
+      .then(({ data: savedUser }) => {
+        setUsers([savedUser, ...users]);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setUsers(originalUsers);
+      });
+  };
 
   const updateUser = (user: User) => {
     const originalUsers = [...users];
-    const updatedUser = {...user, name: user.name + "!"};
-    setUsers(users.map(u => u.id === user.id ? updatedUser : u));
+    const updatedUser = { ...user, name: user.name + "!" };
+    setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
 
-    axios.patch(`https://jsonplaceholder.typicode.com/users/${user.id}`, updatedUser)
-    .catch(err => {
-      setError(err.message);
-      setUsers(originalUsers);
-    })
-  }
+    userService
+      .update(updatedUser) // apiClient.patch('/${user.id}', updatedUser)
+      .catch((err) => {
+        setError(err.message);
+        setUsers(originalUsers);
+      });
+  };
 
   return (
     <>
       {error && <p className="text-danger">{error}</p>}
       {isLoading && <div className="spinner-border"></div>}
-      <button className="btn btn-primary mb-3" onClick={addUser}>Add</button>
+      <button className="btn btn-primary mb-3" onClick={addUser}>
+        Add
+      </button>
       <ul className="list-group">
         {users.map((user) => (
-          <li className="list-group-item d-flex justify-content-between" key={user.id}>
+          <li
+            className="list-group-item d-flex justify-content-between"
+            key={user.id}
+          >
             {user.name}
             <div>
-            <button className="btn btn-outline-secondary mx-1" onClick={() => updateUser(user)}>Update</button>
-            <button className="btn btn-outline-danger" onClick={() => deleteUser(user)}>Delete</button>
+              <button
+                className="btn btn-outline-secondary mx-1"
+                onClick={() => updateUser(user)}
+              >
+                Update
+              </button>
+              <button
+                className="btn btn-outline-danger"
+                onClick={() => deleteUser(user)}
+              >
+                Delete
+              </button>
             </div>
-
           </li>
         ))}
       </ul>
